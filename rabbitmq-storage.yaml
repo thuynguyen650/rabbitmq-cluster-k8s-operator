@@ -1,0 +1,24 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: rabbitmq-storage-class
+  namespace: rabbitmq-system-customized
+provisioner: kubernetes.io/no-provisioner
+volumeBindingMode: WaitForFirstConsumer
+
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: rabbitmq-pv
+  namespace: rabbitmq-system-customized
+spec:
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: rabbitmq-storage-class
+  hostPath:
+    path: "D:\\learn\\rabbitmq\\RabbitMQ Cluster Kubernetes Operator\\db"
+    type: DirectoryOrCreate
