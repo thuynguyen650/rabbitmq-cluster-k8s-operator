@@ -1,3 +1,14 @@
+# Secret for SMB Credentials
+apiVersion: v1
+kind: Secret
+metadata:
+  name: smb-secret
+  namespace: rabbitmq-system-customized
+type: Opaque
+stringData:
+  username: ""
+  password: ""
+---
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
@@ -5,12 +16,11 @@ metadata:
   namespace: rabbitmq-system-customized
 provisioner: kubernetes.io/no-provisioner
 volumeBindingMode: WaitForFirstConsumer
-
 ---
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: rabbitmq-pv
+  name: rabbitmq-pv-csi
   namespace: rabbitmq-system-customized
 spec:
   capacity:
@@ -19,6 +29,11 @@ spec:
     - ReadWriteOnce
   persistentVolumeReclaimPolicy: Retain
   storageClassName: rabbitmq-storage-class
-  hostPath:
-    path: "D:\\learn\\rabbitmq\\RabbitMQ Cluster Kubernetes Operator\\db"
-    type: DirectoryOrCreate
+  csi:
+    driver: smb.csi.k8s.io
+    volumeHandle: "rabbitmq-pv-csi-volume-handler" # this is the unique identifier of the PV configured using SMB CSI driver
+    volumeAttributes:
+      source: "//192.168.0.102/db"
+    nodeStageSecretRef:
+      name: smb-secret
+      namespace: rabbitmq-system-customized
