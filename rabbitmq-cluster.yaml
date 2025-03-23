@@ -4,6 +4,38 @@ metadata:
   name: rabbitmq-cluster
   namespace: rabbitmq-system-customized
 spec:
-  persistence:
-    storageClassName: rabbitmq-storage-class
-    storage: 10Gi
+  image: rabbitmq:4.0.7-management
+  replicas: 3
+  resources:
+    requests:
+      cpu: "250m"
+      memory: "2Gi"
+    limits:
+      memory: "2.5Gi"
+  affinity:
+    # prefer running pods on different nodes
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchExpressions:
+              - key: app
+                operator: In
+                values:
+                  - rabbitmq-cluster
+          topologyKey: "kubernetes.io/hostname"
+  override:
+    statefulSet:
+      spec:
+        volumeClaimTemplates:
+          - apiVersion: v1
+            kind: PersistentVolumeClaim
+            metadata:
+              name: persistence
+              namespace: rabbitmq-system-customized
+            spec:
+              accessModes:
+                - ReadWriteOnce
+              resources:
+                requests:
+                  storage: "10Gi"
+              storageClassName: smb
